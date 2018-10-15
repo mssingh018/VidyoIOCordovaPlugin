@@ -1,18 +1,17 @@
 {
-  "name": "VidyoIOPlugin",
+  "name": "vidyio-io",
   "version": "0.0.2",
-  "description": "",
+  "description": "Video Io",
   "cordova": {
     "id": "com.vidyo.plugin",
     "platforms": [
-      "android",
-      "ios"
+      "android"
     ]
   },
   "keywords": [
     "ecosystem:cordova",
     "cordova-android"
   ],
-  "author": "",
+  "author": "Manpreet Singh",
   "license": "ISC"
 }
