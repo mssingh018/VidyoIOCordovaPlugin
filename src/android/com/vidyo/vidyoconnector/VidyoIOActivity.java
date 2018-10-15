@@ -9,23 +9,14 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.ViewTreeObserver;
 import android.view.WindowManager;
-import android.widget.EditText;
-import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.app.Activity;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
-import android.widget.Toast;
 import android.widget.ToggleButton;
-
-import com.vidyo.vidyoiohybrid.R;
-
-
 import com.vidyo.VidyoClient.Connector.VidyoConnector;
 import com.vidyo.VidyoClient.Connector.Connector;
 import com.vidyo.VidyoClient.Device.VidyoDevice;
@@ -34,15 +25,11 @@ import com.vidyo.VidyoClient.Endpoint.VidyoLogRecord;
 
 import static android.content.ContentValues.TAG;
 
-public class VidyoIOActivity extends Activity implements
-        VidyoConnector.IConnect,
-        VidyoConnector.IRegisterLogEventListener,VidyoConnector.IRegisterLocalCameraEventListener {
+public class VidyoIOActivity extends Activity implements VidyoConnector.IConnect,
+        VidyoConnector.IRegisterLogEventListener, VidyoConnector.IRegisterLocalCameraEventListener {
 
     enum VIDYO_CONNECTOR_STATE {
-        VC_CONNECTED,
-        VC_DISCONNECTED,
-        VC_DISCONNECTED_UNEXPECTED,
-        VC_CONNECTION_FAILURE
+        VC_CONNECTED, VC_DISCONNECTED, VC_DISCONNECTED_UNEXPECTED, VC_CONNECTION_FAILURE
     }
 
     private VIDYO_CONNECTOR_STATE mVidyoConnectorState = VIDYO_CONNECTOR_STATE.VC_DISCONNECTED;
@@ -51,45 +38,46 @@ public class VidyoIOActivity extends Activity implements
     private Logger mLogger = Logger.getInstance();
     private VidyoConnector mVidyoConnector = null;
     private ToggleButton mToggleConnectButton;
-    private ProgressBar mConnectionSpinner;
-    private LinearLayout mControlsLayout;
     private LinearLayout mToolbarLayout;
-    private EditText mHost;
-    private EditText mDisplayName;
-    private EditText mToken;
-    private EditText mResourceId;
+    private String mHost;
+    private String mDisplayName;
+    private String mToken;
+    private String mResourceId;
     private TextView mToolbarStatus;
     private FrameLayout mVideoFrame;
     private FrameLayout mToggleToolbarFrame;
-    private boolean mHideConfig = false;
     private boolean mAutoJoin = false;
     private boolean mAllowReconnect = true;
     private String mReturnURL = null;
     private VidyoIOActivity mSelf;
 
     /*
-     *  Operating System Events
+     * Operating System Events
      */
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         mLogger.Log("onCreate");
         super.onCreate(savedInstanceState);
-
-        setContentView(R.layout.activity_main);
-
+        int activityMainId = getApplicationContext().getResources().getIdentifier("activity_main", "layout",
+                getApplicationContext().getPackageName());
+        int toggleConnectButtonId = getApplicationContext().getResources().getIdentifier("toggleConnectButton", "id",
+                getApplicationContext().getPackageName());
+        int toolbarLayoutId = getApplicationContext().getResources().getIdentifier("toolbarLayout", "id",
+                getApplicationContext().getPackageName());
+        int videoFrameId = getApplicationContext().getResources().getIdentifier("videoFrame", "id",
+                getApplicationContext().getPackageName());
+        int toggleToolbarFrameId = getApplicationContext().getResources().getIdentifier("toggleToolbarFrame", "id",
+                getApplicationContext().getPackageName());
+        int toolbarStatusId = getApplicationContext().getResources().getIdentifier("toolbarStatusText", "id",
+                getApplicationContext().getPackageName());
+        setContentView(activityMainId);
         // Initialize the member variables
-        mToggleConnectButton = (ToggleButton) findViewById(R.id.toggleConnectButton);
-        mControlsLayout = (LinearLayout) findViewById(R.id.controlsLayout);
-        mToolbarLayout = (LinearLayout) findViewById(R.id.toolbarLayout);
-        mVideoFrame = (FrameLayout) findViewById(R.id.videoFrame);
-        mToggleToolbarFrame = (FrameLayout) findViewById(R.id.toggleToolbarFrame);
-        mHost = (EditText) findViewById(R.id.hostTextBox);
-        mDisplayName = (EditText) findViewById(R.id.displayNameTextBox);
-        mToken = (EditText) findViewById(R.id.tokenTextBox);
-        mResourceId = (EditText) findViewById(R.id.resourceIdTextBox);
-        mToolbarStatus = (TextView) findViewById(R.id.toolbarStatusText);
-        mConnectionSpinner = (ProgressBar) findViewById(R.id.connectionSpinner);
+        mToggleConnectButton = (ToggleButton) findViewById(toggleConnectButtonId);
+        mToolbarLayout = (LinearLayout) findViewById(toolbarLayoutId);
+        mVideoFrame = (FrameLayout) findViewById(videoFrameId);
+        mToggleToolbarFrame = (FrameLayout) findViewById(toggleToolbarFrameId);
+        mToolbarStatus = (TextView) findViewById(toolbarStatusId);
         mSelf = this;
 
         // Suppress keyboard
@@ -115,42 +103,35 @@ public class VidyoIOActivity extends Activity implements
         mLogger.Log("onStart");
         super.onStart();
 
-        // If the app was launched by a different app, then get any parameters; otherwise use default settings
+        // If the app was launched by a different app, then get any parameters;
+        // otherwise use default settings
         Intent intent = getIntent();
-        mHost.setText(intent.hasExtra("host") ? intent.getStringExtra("host") : "prod.vidyo.io");
-        mToken.setText(intent.hasExtra("token") ? intent.getStringExtra("token") : "cHJvdmlzaW9uAHN1bWl0QGRkYTg0MC52aWR5by5pbwA2MzY1ODg4MTAyOAAAMTYyNGJmM2IwMGQ3ODdjNmFkNGIyNzE3YTgxNTlkMGUzMDA3NzQxZTZkOWQzYjEwMTY4ZTMxMWZhZDE4MmMxNmVmOWQwNmQyZDQxMGZjMGUzMzUyZDg5ZWQ5Mzk5NDc3");
-        mDisplayName.setText(intent.hasExtra("displayName") ? intent.getStringExtra("displayName") : "");
-        mResourceId.setText(intent.hasExtra("resourceId") ? intent.getStringExtra("resourceId") : "demoRoom");
+        mHost = intent.hasExtra("host") ? intent.getStringExtra("host") : "prod.vidyo.io";
+        mToken = intent.hasExtra("token") ? intent.getStringExtra("token") : null;
+        mDisplayName = intent.hasExtra("displayName") ? intent.getStringExtra("displayName") : null;
+        mResourceId = intent.hasExtra("resourceId") ? intent.getStringExtra("resourceId") : null;
         mReturnURL = intent.hasExtra("returnURL") ? intent.getStringExtra("returnURL") : null;
-        mHideConfig = intent.getBooleanExtra("hideConfig", false);
         mAutoJoin = intent.getBooleanExtra("autoJoin", false);
         mAllowReconnect = intent.getBooleanExtra("allowReconnect", true);
-
-        mLogger.Log("onStart: hideConfig = " + mHideConfig + ", autoJoin = " + mAutoJoin + ", allowReconnect = " + mAllowReconnect);
+        mLogger.Log("autoJoin = " + mAutoJoin + ", allowReconnect = " + mAllowReconnect + ", returnUrl =" + mReturnURL);
 
         // Enable toggle connect button
         mToggleConnectButton.setEnabled(true);
+    }
 
-        // Hide the controls if hideConfig enabled
-        if (mHideConfig) {
-            mControlsLayout.setVisibility(View.GONE);
-        }
+    public void OnLocalCameraAdded(VidyoLocalCamera localCamera) { /* New camera is available */
 
     }
 
+    public void OnLocalCameraRemoved(VidyoLocalCamera localCamera) {
+        /* Existing camera became unavailable */ }
 
-    public void OnLocalCameraAdded(VidyoLocalCamera localCamera)    { /* New camera is available */
-
-
-
-    }
-    public void OnLocalCameraRemoved(VidyoLocalCamera localCamera)  { /* Existing camera became unavailable */          }
     public void OnLocalCameraSelected(VidyoLocalCamera localCamera) {
-       
-    /* Camera was selected by user or automatically */ }
-    public void OnLocalCameraStateUpdated(VidyoLocalCamera localCamera, VidyoDevice.VidyoDeviceState state) { /* Camera state was updated */ }
 
+        /* Camera was selected by user or automatically */ }
 
+    public void OnLocalCameraStateUpdated(VidyoLocalCamera localCamera, VidyoDevice.VidyoDeviceState state) {
+        /* Camera state was updated */ }
 
     @Override
     protected void onResume() {
@@ -164,31 +145,33 @@ public class VidyoIOActivity extends Activity implements
                 public void onGlobalLayout() {
                     mVideoFrame.getViewTreeObserver().removeOnGlobalLayoutListener(this);
 
-                    // If the vidyo connector was not previously successfully constructed then construct it
+                    // If the vidyo connector was not previously successfully constructed then
+                    // construct it
 
                     if (!mVidyoConnectorConstructed) {
 
                         if (mVidyoClientInitialized) {
 
                             mVidyoConnector = new VidyoConnector(mVideoFrame,
-                                    VidyoConnector.VidyoConnectorViewStyle.VIDYO_CONNECTORVIEWSTYLE_Default,
-                                    16,
+                                    VidyoConnector.VidyoConnectorViewStyle.VIDYO_CONNECTORVIEWSTYLE_Default, 16,
                                     "debug@VidyoClient info@VidyoConnector warning ",
-                                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)+"/VidyoIOAndroid.log",
+                                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                                            + "/VidyoIOAndroid.log",
                                     0);
-                            mLogger.Log("Version is "+ mVidyoConnector.GetVersion());
-                            mVidyoConnector.EnableDebug(0,"");
+                            mLogger.Log("Version is " + mVidyoConnector.GetVersion());
+                            mVidyoConnector.EnableDebug(0, "");
                             if (mVidyoConnector != null) {
                                 mVidyoConnectorConstructed = true;
 
-								// Set initial position
+                                // Set initial position
                                 RefreshUI();
 
                                 // Register for log callbacks
-                                if (!mVidyoConnector.RegisterLogEventListener(mSelf, "info@VidyoClient info@VidyoConnector warning")) {
+                                if (!mVidyoConnector.RegisterLogEventListener(mSelf,
+                                        "info@VidyoClient info@VidyoConnector warning")) {
                                     mLogger.Log("VidyoConnector RegisterLogEventListener failed");
                                 }
-                                if(!mVidyoConnector.RegisterLocalCameraEventListener(mSelf)){
+                                if (!mVidyoConnector.RegisterLocalCameraEventListener(mSelf)) {
                                     mLogger.Log("VidyoConnector RegisterLocalCameraEventListener failed");
                                 }
                             } else {
@@ -198,10 +181,12 @@ public class VidyoIOActivity extends Activity implements
                             mLogger.Log("ERROR: VidyoClientInitialize failed - not constructing VidyoConnector ...");
                         }
 
-                        Logger.getInstance().Log("onResume: mVidyoConnectorConstructed => " + (mVidyoConnectorConstructed ? "success" : "failed"));
+                        Logger.getInstance().Log("onResume: mVidyoConnectorConstructed => "
+                                + (mVidyoConnectorConstructed ? "success" : "failed"));
                     }
 
-                    // If configured to auto-join, then simulate a click of the toggle connect button
+                    // If configured to auto-join, then simulate a click of the toggle connect
+                    // button
                     if (mVidyoConnectorConstructed && mAutoJoin) {
                         mToggleConnectButton.performClick();
                     }
@@ -227,7 +212,7 @@ public class VidyoIOActivity extends Activity implements
     @Override
     protected void onStop() {
         mLogger.Log("onStop");
-        if(mVidyoConnector != null)
+        if (mVidyoConnector != null)
             mVidyoConnector.SetMode(VidyoConnector.VidyoConnectorMode.VIDYO_CONNECTORMODE_Background);
         super.onStop();
     }
@@ -261,28 +246,7 @@ public class VidyoIOActivity extends Activity implements
             });
         }
     }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
+    
     /*
      * Private Utility Functions
      */
@@ -291,7 +255,8 @@ public class VidyoIOActivity extends Activity implements
     private void RefreshUI() {
         // Refresh the rendering of the video
         mVidyoConnector.ShowViewAt(mVideoFrame, 0, 0, mVideoFrame.getWidth(), mVideoFrame.getHeight());
-        mLogger.Log("VidyoConnectorShowViewAt: x = 0, y = 0, w = " + mVideoFrame.getWidth() + ", h = " + mVideoFrame.getHeight());
+        mLogger.Log("VidyoConnectorShowViewAt: x = 0, y = 0, w = " + mVideoFrame.getWidth() + ", h = "
+                + mVideoFrame.getHeight());
     }
 
     // The state of the VidyoConnector connection changed, reconfigure the UI.
@@ -316,40 +281,33 @@ public class VidyoIOActivity extends Activity implements
                 if (mVidyoConnectorState == VIDYO_CONNECTOR_STATE.VC_CONNECTED) {
                     // Enable the toggle toolbar control
                     mToggleToolbarFrame.setVisibility(View.VISIBLE);
-
-                    if (!mHideConfig) {
-                        // Update the view to hide the controls
-                        mControlsLayout.setVisibility(View.GONE);
-                    }
                 } else {
                     // VidyoConnector is disconnected
 
                     // Disable the toggle toolbar control
                     mToggleToolbarFrame.setVisibility(View.GONE);
 
-                    // If a return URL was provided as an input parameter, then return to that application
+                    // If a return URL was provided as an input parameter, then return to that
+                    // application
                     if (mReturnURL != null) {
-                        // Provide a callstate of either 0 or 1, depending on whether the call was successful
+                        // Provide a callstate of either 0 or 1, depending on whether the call was
+                        // successful
                         Intent returnApp = getPackageManager().getLaunchIntentForPackage(mReturnURL);
-                        returnApp.putExtra("callstate", (mVidyoConnectorState == VIDYO_CONNECTOR_STATE.VC_DISCONNECTED) ? 1 : 0);
+                        returnApp.putExtra("callstate",
+                                (mVidyoConnectorState == VIDYO_CONNECTOR_STATE.VC_DISCONNECTED) ? 1 : 0);
                         startActivity(returnApp);
                     }
 
-                    // If the allow-reconnect flag is set to false and a normal (non-failure) disconnect occurred,
+                    // If the allow-reconnect flag is set to false and a normal (non-failure)
+                    // disconnect occurred,
                     // then disable the toggle connect button, in order to prevent reconnection.
                     if (!mAllowReconnect && (mVidyoConnectorState == VIDYO_CONNECTOR_STATE.VC_DISCONNECTED)) {
                         mToggleConnectButton.setEnabled(false);
                         mToolbarStatus.setText("Call ended");
                     }
 
-                    if (!mHideConfig ) {
-                        // Update the view to display the controls
-                        mControlsLayout.setVisibility(View.VISIBLE);
-                    }
                 }
 
-                // Hide the spinner animation
-                mConnectionSpinner.setVisibility(View.INVISIBLE);
             }
         });
     }
@@ -365,27 +323,20 @@ public class VidyoIOActivity extends Activity implements
         if (mToggleConnectButton.isChecked()) {
             mToolbarStatus.setText("Connecting...");
 
-            // Display the spinner animation
-            mConnectionSpinner.setVisibility(View.VISIBLE);
-
-            final boolean status = mVidyoConnector.Connect(
-                    mHost.getText().toString(),
-                    mToken.getText().toString(),
-                    mDisplayName.getText().toString(),
-                    mResourceId.getText().toString(),
-                    this);
+            final boolean status = mVidyoConnector.Connect(mHost.toString(), mToken.toString(), mDisplayName.toString(),
+                    mResourceId.toString(), this);
             if (!status) {
-                // Hide the spinner animation
-                mConnectionSpinner.setVisibility(View.INVISIBLE);
-
                 ConnectorStateUpdated(VIDYO_CONNECTOR_STATE.VC_CONNECTION_FAILURE, "Connection failed");
             }
             mLogger.Log("VidyoConnectorConnect status = " + status);
         } else {
-            // The button just switched to the callStart image: The user is either connected to a resource
-            // or is in the process of connecting to a resource; call VidyoConnectorDisconnect to either disconnect
+            // The button just switched to the callStart image: The user is either connected
+            // to a resource
+            // or is in the process of connecting to a resource; call
+            // VidyoConnectorDisconnect to either disconnect
             // or abort the connection attempt.
-            // Change the button back to the callEnd image because do not want to assume that the Disconnect
+            // Change the button back to the callEnd image because do not want to assume
+            // that the Disconnect
             // call will actually end the call. Need to wait for the callback to be received
             // before swapping to the callStart image.
             mToggleConnectButton.setChecked(true);
@@ -423,7 +374,7 @@ public class VidyoIOActivity extends Activity implements
     }
 
     /*
-     *  Connector Events
+     * Connector Events
      */
 
     // Handle successful connection.
@@ -456,21 +407,20 @@ public class VidyoIOActivity extends Activity implements
         mLogger.LogClientLib(logRecord.message);
     }
 
-    public  boolean isStoragePermissionGranted() {
+    public boolean isStoragePermissionGranted() {
         if (Build.VERSION.SDK_INT >= 23) {
-            if (checkSelfPermission(android.Manifest.permission.WRITE_EXTERNAL_STORAGE)
-                    == PackageManager.PERMISSION_GRANTED) {
-                Log.v(TAG,"Permission is granted");
+            if (checkSelfPermission(
+                    android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                Log.v(TAG, "Permission is granted");
                 return true;
             } else {
 
                 Log.v(TAG,"Permission is revoked");
-                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, 1);
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.CAMERA, Manifest.permission_group.MICROPHONE}, 1);
                 return false;
             }
-        }
-        else { //permission is automatically granted on sdk<23 upon installation
-            Log.v(TAG,"Permission is granted");
+        } else { // permission is automatically granted on sdk<23 upon installation
+            Log.v(TAG, "Permission is granted");
             return true;
         }
     }
@@ -478,9 +428,10 @@ public class VidyoIOActivity extends Activity implements
     @Override
     public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(grantResults[0]== PackageManager.PERMISSION_GRANTED){
-            Log.v(TAG,"Permission: "+permissions[0]+ "was "+grantResults[0]);
-            //resume tasks needing this permission
+        if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+            Log.v(TAG, "Permission: " + permissions[0] + "was " + grantResults[0]);
+            // resume tasks needing this permission
         }
     }
 }
+

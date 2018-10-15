@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<plugin id="com.vidyo.plugin" version="0.0.1" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
+<plugin id="com.vidyo.plugin" version="0.0.2" xmlns="http://apache.org/cordova/ns/plugins/1.0" xmlns:android="http://schemas.android.com/apk/res/android">
 	<name>VidyoIOPlugin</name>
 	<js-module name="VidyoIOPlugin" src="www/VidyoIOPlugin.js">
 		<clobbers target="VidyoIOPlugin" />
@@ -22,7 +22,6 @@
 			<uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 			<uses-feature android:name="android.hardware.camera" />	
 		</config-file>
-		
 		<config-file parent="/manifest/application" target="AndroidManifest.xml">
 				<activity
 					android:name="com.vidyo.vidyoconnector.VidyoIOActivity"
@@ -34,18 +33,15 @@
 					</intent-filter>
 				</activity>
 		</config-file>
-		
 		<source-file src="src/android/VidyoIOPlugin.java" target-dir="src/com/vidyo/plugin/VidyoIOPlugin" />
 		<source-file src="src/android/com/vidyo/vidyoconnector/VidyoIOActivity.java" target-dir="src/com/vidyo/vidyoconnector" />
 		<source-file src="src/android/com/vidyo/vidyoconnector/VidyoConnector.java" target-dir="src/com/vidyo/vidyoconnector" />
 		<source-file src="src/android/com/vidyo/vidyoconnector/Logger.java" target-dir="src/com/vidyo/vidyoconnector" />
-		
 		<source-file src="src/android/lib/android/vidyoclient.jar" target-dir="libs" />
         <source-file src="src/android/lib/android/arm64-v8a/libVidyoClient.so" target-dir="libs/arm64-v8a" />
 		<source-file src="src/android/lib/android/armeabi-v7a/libVidyoClient.so" target-dir="libs/armeabi-v7a" />
 		<source-file src="src/android/lib/android/x86/libVidyoClient.so" target-dir="libs/x86" />
 		<source-file src="src/android/lib/android/x86_64/libVidyoClient.so" target-dir="libs/x86_64" />
-		
 		<source-file src="res/callend.png" target-dir="res/drawable" />
 		<source-file src="res/callstart.png" target-dir="res/drawable" />
 		<source-file src="res/camera_off.png" target-dir="res/drawable" />
@@ -59,20 +55,14 @@
 		<source-file src="src/android/res/drawable/toggle_mic_privacy.xml" target-dir="res/drawable" />
 		<source-file src="res/vidyo_io_icon.png" target-dir="res/drawable" />
 		<source-file src="res/vidyo_io_vertical_dark_at_2x.png" target-dir="res/drawable" />
-		
 		<source-file src="src/android/res/layout/activity_main.xml" target-dir="res/layout" />
-		<source-file src="src/android/res/menu/menu_main.xml" target-dir="res/menu" />
-		
 		<source-file src="src/android/res/mipmap-hdpi/ic_launcher.png" target-dir="res/mipmap-hdpi" />
 		<source-file src="src/android/res/mipmap-mdpi/ic_launcher.png" target-dir="res/mipmap-mdpi" />
 		<source-file src="src/android/res/mipmap-xhdpi/ic_launcher.png" target-dir="res/mipmap-xhdpi" />
 		<source-file src="src/android/res/mipmap-xxhdpi/ic_launcher.png" target-dir="res/mipmap-xxhdpi" />
-		
 		<source-file src="src/android/res/values/dimens.xml" target-dir="res/values" />
-		<source-file src="src/android/res/values/strings2.xml" target-dir="res/values" />
 		<source-file src="src/android/res/values/styles.xml" target-dir="res/values" />
 		<source-file src="src/android/res/values-w820dp/dimens.xml" target-dir="res/values-w820dp" />
-		
 	</platform>
 
 	<platform name="ios">
